@@ -12,6 +12,8 @@ Dappy is one application that does co-resolution, this document describes the ov
 
 ### 1. Context, existing problems and limitations
 
+**The Domain Name System**
+
 The Domain Name System is a protocol that names resources on the internet network.
 
 It can be useful to see what a DNS zone looks like, an example of a DNS zone with IP addresses for a domain *example.com*, a subdomain *hello.example.com* and also a TXT record for *example.com*:
@@ -24,12 +26,14 @@ Records:
   type: "TXT", host: "@",     data: "arbitrarydata"
 ```
 
+**The Certificate Authorities system**
+
 The Certificate Authorities validate certificates that are linked to the domain names of the DNS, and allow client-to-server of even server-to-server HTTPS (or HTTP+TLS) connections on the public web.
 
-Those two networks or services (DNS and CAs) are built as a chain of corporations (or private services), each one doing a specific job. Numerous single point of failures exist, and greatly limit the accuracy and security levels that can be achieved when distributing a web application.
+Those two networks or services (DNS and CAs) are built as a chain of corporations (or private services), each one doing a specific job. Numerous single point of failures exist, and greatly limit the accuracy and security levels that can be achieved when distributing a web application or exposing an API.
 
 - A hacked or malicious DNS resolver leads to every client that use it potentially receiving fake/malicious IP addresses.
-- A hacked or malicious registrar company leasds to an entire set of domain names being potentially corrupted all at once.
+- A hacked or malicious registrar company leads to an entire set of domain names being potentially corrupted all at once.
 - A hacked or malicious registry leads to even more harmful consequences because registries tend to manage more domain names than registrars. As an example Palisade team [discovered a SQL injection vulnerability](https://palisade.consulting/blog/tld-hacking) in the TLD registrar Tonga Network  (*.to* domain names). For years it has been possible to change the IP resolution of every domain names under *.to*. 
 - A hacked or malicious certificate authority (CA) also can lead to issuance of fake TLS certificates, and harmful man-in-the-middle attacks.
 
@@ -65,51 +69,54 @@ Certificates at the first (TLD) level can therefore be self signed, and used as 
 
 In the dappy implementations, a suffix may be displayed or made mandatory in the browser, like *.dappy*, *.dy* or *.d*, nevertheless it is a visual suffix that is here to avoid collisions with ICANN's domain names and other name system projects that sell TLD and display them as such in their applications. This suffix does not correspond to an authority that would be above the registrants of the name system. This is why we refer to *first level* or Top Level Domains (TLD) (ex: *example* in *example.d* is a TLD). 
 
-**recursive CERT record resolution**
+**Recursive CERT record resolution**
 
 *Ongoing specification and request for opinions from reviewers*
 
-It is possible to make a certificate valid for multiple hosts, typically some web servers will use the same for *example.com* and *www.example.com*. When navigation on *bar.foo.example.com*, should the web browser retrieve certificates in a rotation fashion ?
-- (1) first for *bar.foo.example.com*
-- (2) then if not found from *foo.example.com*
-- (3) then if not found from *example.com*
+It is possible to make a certificate valid for multiple hosts, typically some web servers will use the same for *example.com* and *www.example.com*. When on *bar.foo.example.com*, should the web browser retrieve certificates in a rotation fashion ?
+- (1) first look for host *bar.foo.example.com* in the zone file
+- (2) then if not found look for host *foo.example.com* in the zone file
+- (3) then if not found look for host *example.com* in the zone file
 
 This feature would allow to have fewer certificates than supported hosts, ease management and renewal of certificates very much.
 
 ### 4. Co-resolution
 
-Co-resolution is the operation performed by a client that uses the name system for communicating with a named resource on the internet network, this client can be a browser or any other arbitrary program. Co-resolution can consist in resolving IP addresses, TXT records or TLS certificate.
+Co-resolution is the operation performed by a client that uses the name system for communicating with a named resource, this client can be a browser or any other arbitrary program. Co-resolution can consist in resolving IP addresses, TXT records or TLS certificate or other kind of data.
 
 The API may or may not follow [DNS Queries over HTTPS](https://www.rfc-editor.org/rfc/rfc8484.html) proposed by IETF. The DNS messages format may or may not follow [RFC 8427](https://www.rfc-editor.org/rfc/rfc8427.html). The dappy system has chosen to comply with both specifications from IETF.
 
 In a co-resolution+blockchain system many independant corporations act as a trustless API layer for reading (and in some case writing) from or to the blockchain. They are called resolvers, co-resolvers or validators. Each resolver runs a DNS-over-HTTPS server, and has a special adapter that reads in the blockchain and sends back data in the appropriate format. They do not deal at all with registries of the DNS.
 
-**Instead of doing unique trustful DNS lookup requests. Clients always query multiple resolvers at the same time. And perform consensus on the set of anwsers received.**
+**Instead of doing unique trustful DNS lookup requests. Clients always query multiple resolvers. And perform consensus on the set of anwsers received.**
 
 Depending on the accuracy level that a client requires, and/or the resolvers that are available, a client may query 3 resolvers, 5, 10, 60% or even 100% of the resolvers. A client may also require 100% of identical answers, or could tolerate only 90% or 66.7%. Those are implementation details and are out of scope here.
 
-Example 1:
+**Example 1 :**
 
-A network of 10 resolvers runs a co-resolution + blockchain name system. A given web browser wants to resolve *hey.dappy*, the settings will be 6/100%. Which means that it will query resolvers until it gets 6 answers (ignoring resolvers that do not respond for any reason), those 6 answers must be 100% identical.
+A network of 10 resolvers runs a co-resolution + blockchain name system. A given web browser wants to resolve *hey.dappy*, the settings will be *6 / 100%*. Which means that it will query resolvers until it gets 6 answers (ignoring resolvers that do not respond for any reason), those 6 answers must be 100% identical.
 
+```
 A A A A A A -> resolution successful (A)
 A A A A A B -> resolution not successful
 A A A B B C -> resolution not successful
 A A A x x x -> resolution not successful
+```
 
-Example 2:
+**Example 2 :**
 
 Some settings that can lower the time of resolution, and also allow greater resiliency would be 4/75%. The co-resolution stops when 4 answers are received, only 3 out of 4 must be the same.
 
+```
 A A A A -> resolution successful (A)
 A A B A -> resolution successful (A)
 A A B B -> resolution not successful
 A A A x -> resolution not successful
+```
 
+**Co-resolution allows for higher resiliency** of the name system because some resolvers can go down from time to time, it has no lethal effect on the co-resolution performed by clients. Whereas in the DNS, if Google's 8.8.8.8 goes down, entire web services go down with, it is a typical single point of failure situation.
 
-Co-resolution allows for higher resiliency of the name system because some resolvers can go down from time to time, it has no letal effect on the co-resolution performed by clients. Whereas in the DNS, if Google's 8.8.8.8 goes down, entire web services go down with it in a typical single point of failure situation.
-
-Co-resolution allows for higher accuracy and security, it is virtually impossible to hack co-resolution because of end-to-end encryption right from the browser or the program doing the resolution.
+**Co-resolution allows for higher accuracy and security than DoH and DNSSEC**, it is virtually impossible to hack co-resolution because of end-to-end encryption right from the browser or the program doing the resolution.
 
 There is no reason to think that a resolver cannot be hacked from time to time (developers, sysadmins, employees make mistakes), in this case end-to-end encryption becomes useless because one end is corrupted. There are many reasons to think that a hack in a 40 companies network, each with its own implementation of the software and/or security infrastucture cannot occur.
 
