@@ -1,4 +1,4 @@
-## Co-resolution and blockchain
+## Blockchain plus co-resolution
 
 ### Abstract
 
