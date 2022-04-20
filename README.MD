@@ -1,5 +1,7 @@
 # Dappy propositions
 
+Four propositions for superior service discovery, TLS certificate retrieval and web application security on the public web.
+
 ### Abstract
 
 XXIst century will see the digitization of human activities continue to extend, as well as the rise of new decentralized, or shared online governance structures.
