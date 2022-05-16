@@ -105,7 +105,7 @@ A A A x x x -> resolution not successful
 
 **Example 2 :**
 
-Some settings that can lower the time of resolution, and also allow greater resiliency would be 4/75%. The co-resolution stops when 4 answers are received, only 3 out of 4 must be the same.
+Some settings that can lower the time of resolution, and also allow greater resiliency would be *4 / 75%*. The co-resolution stops when 4 answers are received, only 3 out of 4 must be the same.
 
 ```
 A A A A -> resolution successful (A)
@@ -122,7 +122,7 @@ There is no reason to think that a resolver cannot be hacked from time to time (
 
 ### 5. Conclusion
 
-Reliance on a decentralized blockchain, end-to-end encryption of name system communications and co-resolution right from the browser (or another programs) is the most resilient and secure way of resolving IP addresses and TLS certificates.
+Reliance on a decentralized blockchain, end-to-end encryption of name system communications and co-resolution right from the browser (or any other programs that does service discovery) is the most resilient and secure way of resolving IP addresses and TLS certificates.
 
 - It allows for less tension on resolvers because responsibility is not concentrated on a single one. They can undergo downtime and even intrusion/hacks from time to time.
 - For any company, organization, or individual that distributes its public web application, SaaS portal, or even a simple API or TLS endpoint can only have more trust and confidence in this system. They can deploy higher value web applications and endpoints, companies achieve lower costs (because less knowledge and tooling is needed) and superior security.
